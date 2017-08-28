@@ -1,10 +1,10 @@
 <?php
 namespace Zan\Framework\Network\WebSocket;
 
-use Zan\Framework\Contract\Network\Request as BaseRequest;
+use ZanPHP\Contracts\WebSocket\WebSocketRequest;
 use Zan\Framework\Network\Http\Routing\Router;
 
-class Request implements BaseRequest
+class Request implements WebSocketRequest
 {
     const WEBSOCKET_OPCODE_CONTINUATION_FRAME = 0x0;
     const WEBSOCKET_OPCODE_TEXT_FRAME = 0x1;
