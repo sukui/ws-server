@@ -1,9 +1,8 @@
 <?php
-
-namespace ZanPHP\WSServer;
+namespace Zan\Framework\Network\WebSocket;
 
 use ZanPHP\Contracts\WebSocket\WebSocketRequest;
-use ZanPHP\Routing\Router;
+use Zan\Framework\Network\Http\Routing\Router;
 
 class Request implements WebSocketRequest
 {

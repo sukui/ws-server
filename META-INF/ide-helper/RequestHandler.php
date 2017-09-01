@@ -1,18 +1,18 @@
 <?php
-
-namespace ZanPHP\WSServer;
+namespace Zan\Framework\Network\WebSocket;
 
 use \swoole_websocket_server as SwooleWebSocketServer;
-use ZanPHP\Contracts\Config\Repository;
-use ZanPHP\Coroutine\Context;
-use ZanPHP\Coroutine\Signal;
-use ZanPHP\Coroutine\Task;
-use ZanPHP\Exception\Network\ExcessConcurrencyException;
-use ZanPHP\ServerBase\Middleware\MiddlewareManager;
-use ZanPHP\Support\Json;
-use ZanPHP\Support\Time;
-use ZanPHP\Timer\Timer;
-use ZanPHP\WorkerMonitor\WorkerMonitor;
+use Zan\Framework\Foundation\Core\Config;
+use Zan\Framework\Foundation\Core\Debug;
+use Zan\Framework\Foundation\Coroutine\Signal;
+use Zan\Framework\Foundation\Coroutine\Task;
+use Zan\Framework\Network\Exception\ExcessConcurrencyException;
+use Zan\Framework\Network\Server\Middleware\MiddlewareManager;
+use Zan\Framework\Network\Server\Monitor\Worker;
+use Zan\Framework\Network\Server\Timer\Timer;
+use Zan\Framework\Utilities\DesignPattern\Context;
+use Zan\Framework\Utilities\Types\Json;
+use Zan\Framework\Utilities\Types\Time;
 
 
 class RequestHandler {
@@ -82,8 +82,7 @@ class RequestHandler {
         $this->context->set('request', $request);
         $this->context->set('swoole_response', $this->response);
         $this->context->set('request_time', Time::stamp());
-        $repository = make(Repository::class);
-        $request_timeout = $repository->get('server.request_timeout');
+        $request_timeout = Config::get('server.request_timeout');
         $request_timeout = $request_timeout ? $request_timeout : self::DEFAULT_TIMEOUT;
         $this->context->set('request_timeout', $request_timeout);
         $this->context->set('request_end_event_name', $this->getRequestFinishJobId());
@@ -95,7 +94,7 @@ class RequestHandler {
 
             $this->middleWareManager = new MiddlewareManager($request, $this->context);
 
-            $isAccept = WorkerMonitor::instance()->reactionReceive();
+            $isAccept = Worker::instance()->reactionReceive();
             //限流
             if (!$isAccept) {
                 throw new ExcessConcurrencyException('现在访问的人太多,请稍后再试..', 503);
@@ -119,8 +118,7 @@ class RequestHandler {
 
     private function handleRequestException($e)
     {
-        $repository = make(Repository::class);
-        if ($repository->get('debug')) {
+        if (Debug::get()) {
             echo_exception($e);
         }
 
