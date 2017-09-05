@@ -1,11 +1,10 @@
 <?php
+namespace Zan\Framework\Network\WebSocket;
 
-namespace ZanPHP\WSServer;
-
-use InvalidArgumentException;
-use ZanPHP\Contracts\Network\Response as BaseResponse;
+use Zan\Framework\Contract\Network\Response as BaseResponse;
+use Zan\Framework\Foundation\Exception\System\InvalidArgumentException;
+use Zan\Framework\Utilities\Types\Json;
 use \swoole_websocket_server as SwooleWebSocketServer;
-use ZanPHP\Support\Json;
 
 class Response implements BaseResponse
 {

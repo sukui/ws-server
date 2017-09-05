@@ -12,7 +12,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Zan\\Framework\\Network\\WebSocket\\": "src/"
+      "ZanPHP\\WSServer\\": "src/"
     }
   },
   "extra": {

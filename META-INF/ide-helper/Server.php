@@ -1,16 +1,16 @@
 <?php
+namespace Zan\Framework\Network\WebSocket;
 
-namespace ZanPHP\WSServer;
-
-use ZanPHP\HttpFoundation\Request\Request as HttpRequest;
-use ZanPHP\HttpServer\Server as HttpServer;
-use ZanPHP\Coroutine\Task;
-use ZanPHP\HttpServer\ServerStart\InitializeProxyIps;
-use ZanPHP\HttpServer\ServerStart\InitializeRouter;
-use ZanPHP\HttpServer\ServerStart\InitializeSqlMap;
-use ZanPHP\HttpServer\ServerStart\InitializeUrlConfig;
-use ZanPHP\ServerBase\ServerStart\InitLogConfig;
-use ZanPHP\TcpServer\ServerStart\InitializeMiddleware;
+use Zan\Framework\Foundation\Coroutine\Task;
+use Zan\Framework\Network\Http\Request\Request;
+use Zan\Framework\Network\Http\Server as HttpServer;
+use Zan\Framework\Network\Http\ServerStart\InitializeProxyIps;
+use Zan\Framework\Network\Http\ServerStart\InitializeRouter;
+use Zan\Framework\Network\Http\ServerStart\InitializeSqlMap;
+use Zan\Framework\Network\Http\ServerStart\InitializeUrlConfig;
+use Zan\Framework\Network\Server\ServerStart\InitLogConfig;
+use Zan\Framework\Network\Tcp\ServerStart\InitializeMiddleware;
+use Zan\Framework\Network\WebSocket\RequestHandler;
 
 class Server extends HttpServer
 {
@@ -46,7 +46,7 @@ class Server extends HttpServer
 
     public function onOpen($ws, $request)
     {
-        $req = HttpRequest::createFromSwooleHttpRequest($request);
+        $req = Request::createFromSwooleHttpRequest($request);
         $clientIp = $req->getClientIp();
         $this->clientInfo[$request->fd] = $clientIp;
         if ($this->openCallback) {
