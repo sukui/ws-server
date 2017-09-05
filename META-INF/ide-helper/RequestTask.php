@@ -1,13 +1,12 @@
 <?php
+namespace Zan\Framework\Network\WebSocket;
 
-namespace ZanPHP\WSServer;
-
-use ZanPHP\Contracts\Config\Repository;
-use ZanPHP\Coroutine\Context;
-use ZanPHP\Coroutine\Task;
-use ZanPHP\HttpServer\Dispatcher;
-use ZanPHP\ServerBase\Middleware\MiddlewareManager;
-use ZanPHP\Support\Di;
+use Zan\Framework\Foundation\Container\Di;
+use Zan\Framework\Foundation\Core\Debug;
+use Zan\Framework\Foundation\Coroutine\Task;
+use Zan\Framework\Network\Http\Dispatcher;
+use Zan\Framework\Network\Server\Middleware\MiddlewareManager;
+use Zan\Framework\Utilities\DesignPattern\Context;
 
 class RequestTask
 {
@@ -40,8 +39,7 @@ class RequestTask
         }
 
         if (isset($e)) {
-            $repository = make(Repository::class);
-            if ($repository->get('debug')) {
+            if (Debug::get()) {
                 echo_exception($e);
             }
             $coroutine = RequestHandler::handleException($this->middleWareManager, $e);
