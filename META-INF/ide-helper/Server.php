@@ -1,124 +1,45 @@
 <?php
 namespace Zan\Framework\Network\WebSocket;
 
-use Zan\Framework\Foundation\Coroutine\Task;
-use Zan\Framework\Network\Http\Request\Request;
-use Zan\Framework\Network\Http\Server as HttpServer;
-use Zan\Framework\Network\Http\ServerStart\InitializeProxyIps;
-use Zan\Framework\Network\Http\ServerStart\InitializeRouter;
-use Zan\Framework\Network\Http\ServerStart\InitializeSqlMap;
-use Zan\Framework\Network\Http\ServerStart\InitializeUrlConfig;
-use Zan\Framework\Network\Server\ServerStart\InitLogConfig;
-use Zan\Framework\Network\Tcp\ServerStart\InitializeMiddleware;
-use Zan\Framework\Network\WebSocket\RequestHandler;
+use ZanPHP\HttpServer\Server as HttpServer;
 
 class Server extends HttpServer
 {
-    private $clientInfo = [];
+    private $Server;
 
-    /** @var callable */
-    private $openCallback = null;
-
-    private $closeCallback = null;
-
-    protected $serverStartItems = [
-        InitializeRouter::class,
-        InitializeUrlConfig::class,
-        InitializeSqlMap::class,
-        InitializeMiddleware::class,
-        InitLogConfig::class,
-        InitializeProxyIps::class,
-    ];
+    public function __construct()
+    {
+        $this->Server = new \ZanPHP\WSServer\Server();
+    }
 
     public function setSwooleEvent()
     {
-        $this->swooleServer->on('start', [$this, 'onStart']);
-        $this->swooleServer->on('shutdown', [$this, 'onShutdown']);
-
-        $this->swooleServer->on('workerStart', [$this, 'onWorkerStart']);
-        $this->swooleServer->on('workerStop', [$this, 'onWorkerStop']);
-        $this->swooleServer->on('workerError', [$this, 'onWorkerError']);
-
-        $this->swooleServer->on('open', [$this, "onOpen"]);
-        $this->swooleServer->on('message', [$this, "OnMessage"]);
-        $this->swooleServer->on('close', [$this, "OnClose"]);
+        $this->Server->setSwooleEvent();
     }
 
     public function onOpen($ws, $request)
     {
-        $req = Request::createFromSwooleHttpRequest($request);
-        $clientIp = $req->getClientIp();
-        $this->clientInfo[$request->fd] = $clientIp;
-        if ($this->openCallback) {
-            $gen = function () use ($req, $request, $ws) {
-                $cb = $this->openCallback;
-                try {
-                    yield call_user_func($cb, $req, $request->fd);
-                } catch (\Throwable $t) {
-                    echo_exception($t);
-                    $ws->close($request->fd);
-                } catch (\Exception $e) {
-                    echo_exception($e);
-                    $ws->close($request->fd);
-                }
-            };
-
-            Task::execute($gen());
-        }
+        $this->Server->onOpen($ws, $request);
     }
 
     public function OnMessage($ws, $frame)
     {
-        try {
-            if (!isset($this->clientInfo[$frame->fd])) {
-                $ws->close($frame->fd);
-                return;
-            }
-            $clientIp = $this->clientInfo[$frame->fd];
-            $frame->clientIp = $clientIp;
-            (new RequestHandler())->handle($ws, $frame);
-        } catch (\Throwable $t) {
-            echo_exception($t);
-            $ws->close($frame->fd);
-        } catch (\Exception $e) {
-            echo_exception($e);
-            $ws->close($frame->fd);
-        }
+        $this->Server->OnMessage($ws, $frame);
     }
 
     public function OnClose($ws, $fd)
     {
-        if ($this->closeCallback) {
-            $gen = function () use ($fd) {
-                $cb = $this->closeCallback;
-                try {
-                    yield call_user_func($cb, $fd);
-                } catch (\Throwable $t) {
-                    echo_exception($t);
-                } catch (\Exception $e) {
-                    echo_exception($e);
-                }
-            };
-
-            Task::execute($gen());
-        }
-        unset($this->clientInfo[$fd]);
+        $this->Server->OnClose($ws, $fd);
     }
 
-    /**
-     * @param $openCallback
-     */
     public function setOpenCallback(callable $openCallback)
     {
-        $this->openCallback = $openCallback;
+        $this->Server->setOpenCallback($openCallback);
     }
 
-    /**
-     * @param $closeCallback
-     */
     public function setCloseCallback(callable $closeCallback)
     {
-        $this->closeCallback = $closeCallback;
+        $this->Server->setCloseCallback($closeCallback);
     }
 
 }
